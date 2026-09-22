@@ -44,8 +44,11 @@ class SnakeMusic:
         if not isinstance(instance, vlc.Instance):
             raise TypeError("well, dont know how we fix this")
         self.instance = instance
+        instance.log_unset()
         self.player = self.instance.media_list_player_new()
         self.tracks = {x[0]: self.instance.media_new(x[1]) for x in tracks}
+        for x in self.tracks.values():
+            x.parse_with_options(vlc.MediaParseFlag(0x0), 10)
         media_list = vlc.MediaList([x for x in self.tracks.values()])
         self.player.set_media_list(media_list)
         self.player.set_playback_mode(vlc.PlaybackMode(2))

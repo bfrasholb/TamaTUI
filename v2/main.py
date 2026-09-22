@@ -22,7 +22,8 @@ def main(window: curses.window):
         (3, "./wavs/snake-ohshit.wav")
     ]
     background_music = SnakeMusic(tracks)
-    while (1):
+    time.sleep(2)
+    while 1:
         background_music.stoptrack()
         background_music.playtrack(1)
         render.menu(snake)
@@ -30,7 +31,7 @@ def main(window: curses.window):
         loop_avg = []
         first_loop = 1
         loops = 0
-        while (snake.alive):
+        while snake.alive:
             snake.die()
             render.food(food)
             render.player(snake)
@@ -46,7 +47,12 @@ def main(window: curses.window):
                     total += value
                 avg = total / len(loop_avg)
                 fps = f"FPS: {int(1 / avg)}"
-                render.console.addstr(0, render.console_yx[1] - len(fps), fps, curses.color_pair(5))
+                render.console.addstr(
+                    0,
+                    render.console_yx[1] - len(fps),
+                    fps,
+                    curses.color_pair(5),
+                )
             else:
                 first_loop = 0
                 start_time = time.time()
@@ -66,5 +72,6 @@ def main(window: curses.window):
             if snake.multiplier >= 10:
                 background_music.playtrack(3)
 
-if __name__ == '__main__':
-    curses.wrapper(main) # Initialise and return the window to main()
+
+if __name__ == "__main__":
+    curses.wrapper(main)  # Initialise and return the window to main()
