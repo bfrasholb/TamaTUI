@@ -5,18 +5,28 @@ from classes import *
 from render import Render
 from helper import add_tuple
 import time
+import vlc
+from gamesound import SnakeMusic
 
 frames = 62
-framerate = 1 / frames # Aim for 60 fps, overshoot for stability
+size = 12
 
 def main(window: curses.window):
     food = Food(window.getmaxyx())
-    snake = Snake(window.getmaxyx(), 12, food)
+    snake = Snake(window.getmaxyx(), size, food)
     render = Render(window, snake, food)
 
+    tracks = [
+        (1, "./wavs/snake-soft.wav"),
+        (2, "./wavs/snake-medium.wav"),
+        (3, "./wavs/snake-ohshit.wav")
+    ]
+    background_music = SnakeMusic(tracks)
     while (1):
+        background_music.stoptrack()
+        background_music.playtrack(1)
         render.menu(snake)
-        snake.respawn(render.game.getmaxyx(), 12, food)
+        snake.respawn(render.game.getmaxyx(), size, food)
         loop_avg = []
         first_loop = 1
         loops = 0
@@ -43,13 +53,18 @@ def main(window: curses.window):
 
             render.refresh_pads(False)
             render.handle_input()
-            time.sleep(framerate)
+            time.sleep(1 / frames)
             if snake.alive == 0:
                 render.game_over(snake)
             if loops == int(frames / (0.7 * snake.speed)):
                 snake.move(food)
                 loops = -1
             loops += 1
+
+            if snake.multiplier >= 5:
+                background_music.playtrack(2)
+            if snake.multiplier >= 10:
+                background_music.playtrack(3)
 
 if __name__ == '__main__':
     curses.wrapper(main) # Initialise and return the window to main()
