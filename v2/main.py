@@ -17,21 +17,32 @@ def main(window: curses.window):
     render = Render(window, snake, food)
 
     tracks = [
-        (1, "./wavs/snake-soft.wav"),
-        (2, "./wavs/snake-medium.wav"),
-        (3, "./wavs/snake-ohshit.wav")
+        (1, "wavs/snake-soft.wav"),
+        (2, "wavs/snake-medium.wav"),
+        (3, "wavs/snake-ohshit.wav")
     ]
     background_music = SnakeMusic(tracks)
     time.sleep(2)
     while 1:
-        background_music.stoptrack()
-        background_music.playtrack(1)
         render.menu(snake)
         snake.respawn(render.game.getmaxyx(), size, food)
         loop_avg = []
         first_loop = 1
         loops = 0
+        current_song = 1
+        change_song = 0
+        background_music.playtrack(current_song)
+
         while snake.alive:
+            if change_song:
+                current_song += 1
+                background_music.playtrack(current_song)
+                change_song = 0
+            if snake.multiplier >= 5 and current_song == 1:
+                change_song = 1
+            if snake.multiplier >= 10 and current_song == 2:
+                change_song = 1
+
             snake.die()
             render.food(food)
             render.player(snake)
@@ -66,12 +77,6 @@ def main(window: curses.window):
                 snake.move(food)
                 loops = -1
             loops += 1
-
-            if snake.multiplier >= 5:
-                background_music.playtrack(2)
-            if snake.multiplier >= 10:
-                background_music.playtrack(3)
-
 
 if __name__ == "__main__":
     curses.wrapper(main)  # Initialise and return the window to main()
