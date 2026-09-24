@@ -10,10 +10,12 @@ class Render:
         self.screen = screen
         self.max_yx = screen.getmaxyx()
         # Renderer Methods
-        self.game, self.game_yx, self.lb, self.lb_yx, self.console, self.console_yx = self.init_pads(screen, snake, food)
+        self.game, self.game_yx, self.lb, self.lb_yx, self.console, self.console_yx = self.init_pads(
+            screen, snake, food)
         spawn_point = (self.game_yx[0] // 2, self.game_yx[1] // 2)
         self.snake = snake
-        self.snake.points = [spawn_point, add_tuple((spawn_point[0] // 2, spawn_point[1] // 2), (0, 1))]
+        self.snake.points = [spawn_point, add_tuple(
+            (spawn_point[0] // 2, spawn_point[1] // 2), (0, 1))]
         self.last_key = -1
 
     ####################
@@ -29,7 +31,7 @@ class Render:
         self.__screen = screen
 
     @property
-    def max_yx(self) -> (int , int):
+    def max_yx(self) -> (int, int):
         return self.__max_yx
 
     @max_yx.setter
@@ -77,7 +79,7 @@ class Render:
         self.__console = window
 
     @property
-    def console_yx(self) -> (int , int):
+    def console_yx(self) -> (int, int):
         return self.__console_yx
 
     @console_yx.setter
@@ -106,25 +108,27 @@ class Render:
 
     def init_pads(self, screen: curses.window, snake: object, food: object) -> [curses.window, (int, int)]:
         curses.start_color()  # allow color
-        curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)  # create a red
+        curses.init_pair(2, curses.COLOR_RED,
+                         curses.COLOR_BLACK)  # create a red
         curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(4, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
         curses.init_pair(5, curses.COLOR_YELLOW, curses.COLOR_BLACK)
         curses.init_pair(6, curses.COLOR_GREEN, curses.COLOR_RED)
+        curses.init_pair(7, curses.COLOR_RED, curses.COLOR_GREEN)
         # Pad Size Initialisation
         lb_yx = (screen.getmaxyx())
         game_yx = (lb_yx[0] - 1, 2 * (lb_yx[0] - 1))
         console_yx = (lb_yx[0] - 2, lb_yx[1] - game_yx[1] - 27)
 
-        #initialise the pads
+        # initialise the pads
         lb = curses.newpad(*lb_yx)
         console = curses.newpad(*console_yx)
         game = curses.newpad(*game_yx)
 
         # General Curses Settings
-        curses.noecho() # Turn off key echoing
-        curses.curs_set(0) # Set cursor visibility
-        curses.cbreak() # Turn off buffered input
+        curses.noecho()  # Turn off key echoing
+        curses.curs_set(0)  # Set cursor visibility
+        curses.cbreak()  # Turn off buffered input
 
         # Set general curses settings for Game Pad
         game.keypad(True)
@@ -141,23 +145,28 @@ class Render:
     def refresh_pads(self, all_pads: bool) -> None:
         if all_pads:
             self.lb.noutrefresh(0, 0, 0, 0, *self.lb_yx)
-        self.console.noutrefresh(0, 0, 1, (self.lb_yx[0] // 2) + self.game_yx[1] + 3, *self.max_yx)
-        self.game.noutrefresh(0, 0, 1, ((self.lb_yx[0]) // 2), self.max_yx[0] - 2, self.max_yx[1])
+        self.console.noutrefresh(
+            0, 0, 1, (self.lb_yx[0] // 2) + self.game_yx[1] + 3, *self.max_yx)
+        self.game.noutrefresh(
+            0, 0, 1, ((self.lb_yx[0]) // 2), self.max_yx[0] - 2, self.max_yx[1])
         curses.doupdate()
 
     def menu(self, snake: object) -> None:
         menu_pos = (self.game_yx[0] // 2 - 5, self.game_yx[1] // 2 - 12)
         menu = [
             f"    Welcome to Snake!",
-            #f"        Lines: {lb_y}",
-            #f"      Columns: {lb_x}",
+            # f"        Lines: {lb_y}",
+            # f"      Columns: {lb_x}",
             f"            ",
             f"use the arrow keys to move",
             f"  press any key to start"
         ]
 
+        if snake.score:
+            menu = ["", "", "\t  Paused", "\t    "]
+
         for line in menu:
-            self.game.addstr(*menu_pos, line, curses.color_pair(3))
+            self.game.addstr(*menu_pos, line, curses.color_pair(5))
             menu_pos = add_tuple(menu_pos, (1, 0))
         self.write_leaderboard()
 
@@ -170,15 +179,20 @@ class Render:
         self.console.clear()
 
     def player(self, snake: object) -> None:
+        colour = 2 if not set(snake.points[:1]).intersection(
+            set(snake.points[2:])) else 7
         for point in snake.tail:
             self.game.addstr(point[0], 2 * point[1], '  ')
+        for point in snake.points[1:]:
+            self.game.addstr(point[0], 2 * point[1],
+                             '██', curses.color_pair(3))
         if snake.orientation in ["East", "West"]:
-            self.game.addstr(snake.points[0][0], 2 * snake.points[0][1], snake.get_head(), curses.color_pair(2))
+            self.game.addstr(snake.points[0][0], 2 * snake.points[0]
+                             [1], snake.get_head(), curses.color_pair(colour))
         else:
             for index, point in enumerate(snake.points[:1]):
-                self.game.addstr(point[0], 2 * point[1], snake.get_head()[index], curses.color_pair(2))
-        for point in snake.points[1:]:
-            self.game.addstr(point[0], 2 * point[1], '██', curses.color_pair(3))
+                self.game.addstr(
+                    point[0], 2 * point[1], snake.get_head()[index], curses.color_pair(colour))
 
     # def player(self, snake: object) -> None:
     #     for point in snake.tail:
@@ -188,7 +202,8 @@ class Render:
     #             self.game.addstr(point[0] + i, 2 * point[1], '██', curses.color_pair(3))
 
     def food(self, food: object) -> None:
-        self.game.addstr(food.yx[0], 2 * food.yx[1], '', curses.color_pair(2)) # 🐀
+        self.game.addstr(food.yx[0], 2 * food.yx[1],
+                         '', curses.color_pair(2))  # 🐀
 
     def handle_input(self) -> None:
         key = self.game.getch()
@@ -222,8 +237,10 @@ class Render:
         user_string = ""
 
         while True:
-            self.game.addstr(*cursor_pos, user_string + f" " * (18 - len(user_string)))
-            self.game.noutrefresh(0, 0, 1, ((self.lb_yx[0]) // 2), self.max_yx[0] - 2, self.max_yx[1])
+            self.game.addstr(*cursor_pos, user_string +
+                             f" " * (18 - len(user_string)))
+            self.game.noutrefresh(
+                0, 0, 1, ((self.lb_yx[0]) // 2), self.max_yx[0] - 2, self.max_yx[1])
             curses.doupdate()
             char = self.game.getkey()
             if char.isalpha() or char in ['KEY_BACKSPACE', '\n']:
@@ -249,7 +266,8 @@ class Render:
         except (FileNotFoundError, json.JSONDecodeError):
             scores = []
 
-        new_scores = [entry for entry in scores if entry['username'] != username]
+        new_scores = [
+            entry for entry in scores if entry['username'] != username]
         new_scores.append({"username": username, "score": score})
         new_scores.sort(key=lambda x: x["score"], reverse=True)
         with open("scores.json", "w") as f:
@@ -266,8 +284,10 @@ class Render:
         self.lb.addstr(1, 2, "Leaderboard:", curses.color_pair(5))
 
         for i, player in enumerate(scores):
-            self.lb.addstr(3 + (2 * i), 3, f"{player['username']}:", curses.color_pair(3))
-            self.lb.addstr(4 + (2 * i), 3, f"{player['score']}", curses.color_pair(3))
+            self.lb.addstr(
+                3 + (2 * i), 3, f"{player['username']}:", curses.color_pair(3))
+            self.lb.addstr(
+                4 + (2 * i), 3, f"{player['score']}", curses.color_pair(5))
             i += 1
 
             # Render the border
@@ -277,12 +297,18 @@ class Render:
         for i in range(0, self.lb_yx[0] - 1):
             self.lb.addstr(i, 0, '██', curses.color_pair(4))
             self.lb.addstr(i, self.lb_yx[1] - 2, '██', curses.color_pair(4))
-            self.lb.addstr(i, ((self.lb_yx[0]) // 2) - 2, '██', curses.color_pair(4))
-            self.lb.addstr(i, ((self.lb_yx[0]) // 2) + self.game_yx[1], '██', curses.color_pair(4))
+            self.lb.addstr(
+                i, ((self.lb_yx[0]) // 2) - 2, '██', curses.color_pair(4))
+            self.lb.addstr(
+                i, ((self.lb_yx[0]) // 2) + self.game_yx[1], '██', curses.color_pair(4))
         curses.doupdate()
 
     def score(self) -> None:
         # Print the player score aligned to the right of the game pad
         scoreboard = f"Score: {int(self.snake.score)}"
         self.console.addstr(0, 0, scoreboard, curses.color_pair(5))
-        self.console.addstr(2, 0, f"Snake Multiplier:\n{self.snake.multiplier}\nSnake Orientation:\n{self.snake.orientation}\nSnake Points:\n{self.snake.points}\n", curses.color_pair(3))
+        console = [f"Snake Multiplier:", f"{self.snake.multiplier}\n", "Snake Orientation:",
+                   f"{self.snake.orientation}\n", "Snake Points:", f"{self.snake.points}\n"]
+        for index, line in enumerate(console):
+            self.console.addstr(2 + index, 0, line,
+                                curses.color_pair(3 if index % 2 == 0 else 5))

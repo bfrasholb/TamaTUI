@@ -1,50 +1,54 @@
 [
-    {
-        "username": "sleepless",
-        "score": 577.0
-    },
-    {
-        "username": "sleepmore",
-        "score": 560.0
-    },
-    {
-        "username": "MKR",
-        "score": 437.0
-    },
-    {
-        "username": "ZD",
-        "score": 409.0
-    },
-    {
-        "username": "Sebastion",
-        "score": 270.0
-    },
-    {
-        "username": "DziRare",
-        "score": 215.0
-    },
-    {
-        "username": "Jon",
-        "score": 187.0
-    },
-    {
-        "username": "ooleeyanah",
-        "score": 169.0
-    },
-    {
-        "username": "MissPanduh",
-        "score": 104.0
-    },
-    {
-        "username": "cale",
-        "score": 66.0
-    },
-    {
-        "username": "GGEZPZLSRS",
-        "score": 30.0
-    },
-    {
-        "username": "oo",
-        "score": 0
-    }
+	{
+		"username": "sleepless",
+		"score": 594.0
+	},
+	{
+		"username": "GripsNrips",
+		"score": 577.0
+	},
+	{
+		"username": "sleepmore",
+		"score": 560.0
+	},
+	{
+		"username": "MKR",
+		"score": 437.0
+	},
+	{
+		"username": "ZD",
+		"score": 409.0
+	},
+	{
+		"username": "Sebastion",
+		"score": 270.0
+	},
+	{
+		"username": "DziRare",
+		"score": 215.0
+	},
+	{
+		"username": "Jon",
+		"score": 187.0
+	},
+	{
+		"username": "ooleeyanah",
+		"score": 169.0
+	},
+	{
+		"username": "MissPanduh",
+		"score": 104.0
+	},
+	{
+		"username": "cale",
+		"score": 66.0
+	},
+	{
+		"username": "lolaharlryy",
+		"score": 15.0
+	},
+	{
+		"username": "hannahsmith",
+		"score": 13.0
+	}
 ]
