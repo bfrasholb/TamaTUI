@@ -115,10 +115,11 @@ class Render:
         curses.init_pair(5, curses.COLOR_YELLOW, curses.COLOR_BLACK)
         curses.init_pair(6, curses.COLOR_GREEN, curses.COLOR_RED)
         curses.init_pair(7, curses.COLOR_RED, curses.COLOR_GREEN)
+        curses.init_pair(8, curses.COLOR_BLACK, curses.COLOR_BLACK)
         # Pad Size Initialisation
         lb_yx = (screen.getmaxyx())
         game_yx = (lb_yx[0] - 1, 2 * (lb_yx[0] - 1))
-        console_yx = (lb_yx[0] - 2, lb_yx[1] - game_yx[1] - 27)
+        console_yx = (lb_yx[0] - 2, lb_yx[1] - game_yx[1] - 30)
 
         # initialise the pads
         lb = curses.newpad(*lb_yx)
@@ -152,6 +153,9 @@ class Render:
         curses.doupdate()
 
     def menu(self, snake: object) -> None:
+        for i in range(0, self.game_yx[0] - 1):
+            for j in range(0, self.game_yx[1] - 1):
+                self.game.addstr(i, j, '  ', curses.color_pair(8))
         menu_pos = (self.game_yx[0] // 2 - 5, self.game_yx[1] // 2 - 12)
         menu = [
             f"    Welcome to Snake!",
@@ -182,7 +186,7 @@ class Render:
         colour = 2 if not set(snake.points[:1]).intersection(
             set(snake.points[2:])) else 7
         for point in snake.tail:
-            self.game.addstr(point[0], 2 * point[1], '  ')
+            self.game.addstr(point[0], 2 * point[1], '  ', curses.color_pair(8))
         for point in snake.points[1:]:
             self.game.addstr(point[0], 2 * point[1],
                              '██', curses.color_pair(3))
