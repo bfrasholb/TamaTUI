@@ -142,7 +142,7 @@ class Snake(Base):
         return self.__tail
 
     @tail.setter
-    def tail(self, points: list(tuple)) -> None:
+    def tail(self, points: list[tuple]) -> None:
         self.__tail = points
 
     ###########
