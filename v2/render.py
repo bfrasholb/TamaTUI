@@ -284,11 +284,14 @@ class Render:
         self.lb.addstr(1, 2, "Leaderboard:", curses.color_pair(5))
 
         for i, player in enumerate(scores):
-            self.lb.addstr(
-                3 + (2 * i), 3, f"{player['username']}:", curses.color_pair(3))
-            self.lb.addstr(
-                4 + (2 * i), 3, f"{player['score']}", curses.color_pair(5))
-            i += 1
+            try:
+                self.lb.addstr(
+                    3 + (2 * i), 3, f"{player['username']}:", curses.color_pair(3))
+                self.lb.addstr(
+                    4 + (2 * i), 3, f"{player['score']}", curses.color_pair(5))
+                i += 1
+            except:
+                pass
 
             # Render the border
         for i in range(0, self.lb_yx[1] - 1):
