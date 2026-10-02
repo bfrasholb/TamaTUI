@@ -33,7 +33,7 @@ class SnakeMusic:
 
     """
 
-    def __init__(self, tracks: list[tuple[int | str, str]]) -> None:
+    def __init__(self, tracks: list[tuple[int, str]]) -> None:
         """Initialze the SnakeMusic class.
 
         Raises:
@@ -97,8 +97,6 @@ class SnakeMusic:
 
     @instance.setter
     def instance(self, instance: vlc.Instance) -> None:
-        if not isinstance(instance, vlc.Instance):
-            raise TypeError("well, dont know how we fix this")
         self.__instance = instance
 
     @property
@@ -108,6 +106,4 @@ class SnakeMusic:
 
     @player.setter
     def player(self, player: vlc.MediaListPlayer) -> None:
-        if not isinstance(player, vlc.MediaListPlayer):
-            raise TypeError("wrong way go back")
         self.__player = player

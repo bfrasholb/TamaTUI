@@ -3,12 +3,11 @@
 import curses
 from classes import *
 from render import Render
-from helper import add_tuple
 import time
-import vlc
 from gamesound import SnakeMusic
+from statistics import mean
 
-frames = 60
+frames = 90
 size = 12
 
 
@@ -21,14 +20,14 @@ def main(window: curses.window):
         tracks = [
             (1, "wavs/snake-soft.wav"),
             (2, "wavs/snake-medium.wav"),
-            (3, "wavs/snake-ohshit.wav")
+            (3, "wavs/snake-ohshit.wav"),
         ]
         background_music = SnakeMusic(tracks)
         time.sleep(2)
 
         while 1:
             snake.score = 0
-            render.menu(snake)
+            render.menu()
             snake.respawn(render.game.getmaxyx(), size, food)
             loop_avg = []
             first_loop = 1
@@ -48,8 +47,8 @@ def main(window: curses.window):
                     change_song = 1
 
                 snake.die()
-                render.food(food)
-                render.player(snake)
+                render.food()
+                render.player()
                 render.score()
 
                 # Measure + Print FPS
@@ -57,17 +56,14 @@ def main(window: curses.window):
                     end_time = time.time()
                     loop_avg.append(end_time - start_time)
                     start_time = time.time()
-                    total = 0
-                    for value in loop_avg:
-                        total += value
-                        avg = total / len(loop_avg)
-                        fps = f"   FPS: {int(1 / avg)}"
-                        render.console.addstr(
-                            0,
-                            render.console_yx[1] - len(fps),
-                            fps,
-                            curses.color_pair(5),
-                        )
+                    avg = mean(loop_avg)
+                    fps = f"   FPS: {int(1 / avg)}"
+                    render.console.addstr(
+                        0,
+                        render.console_yx[1] - len(fps),
+                        fps,
+                        curses.color_pair(5),
+                    )
                 else:
                     first_loop = 0
                     start_time = time.time()
@@ -76,14 +72,14 @@ def main(window: curses.window):
                 render.handle_input()
                 time.sleep(1 / frames)
                 if snake.alive == 0:
-                    render.game_over(snake)
+                    render.game_over()
                 if loops == int(frames / (0.7 * snake.speed)):
                     snake.move(food)
                     loops = -1
                 loops += 1
     except curses.error:
         success = 0
-    except BaseException as e:
+    except BaseException:
         success = 1
 
     x = curses.COLS
@@ -96,7 +92,8 @@ if __name__ == "__main__":
     y, x, success = curses.wrapper(main)
     if not success:
         print(
-            f"CURSES GO AHHHHH!\nsize is {x}x {y}y\nmax size: 189x 47y\nmin size: 111x 27y")
+            f"CURSES GO AHHHHH!\nsize is {x}x {y}y\nmax size: 189x 47y\nmin size: 111x 27y"
+        )
     else:
         print(f"See you next time!")
         print(f"size is {x}x {y}y")

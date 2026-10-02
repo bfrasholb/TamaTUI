@@ -1,5 +1,5 @@
 import curses
-from helper import add_tuple, add_tuple_wrap
+from helper import add_tuple_wrap
 from random import randint
 
 
@@ -13,7 +13,7 @@ class Base:
         return self.__max_yx
 
     @max_yx.setter
-    def max_yx(self, bounds: (int, int)) -> None:
+    def max_yx(self, bounds: tuple) -> None:
         self.__max_yx = bounds
 
     @property
@@ -25,7 +25,7 @@ class Base:
         self.__yx = point
 
     def respawn(self) -> object:
-        self.__init__()
+        self.__init__(self.max_yx)
 
 
 class Food(Base):
@@ -37,17 +37,22 @@ class Food(Base):
         self.yx = (randint(0, bounds[0]), randint(0, bounds[1]))
         self.yx = add_tuple_wrap(self.yx, (0, 0), bounds)
 
+
 class Snake(Base):
-    def __init__(self, bounds: tuple, size: int, food: object) -> None:
+    def __init__(self, bounds: tuple, size: int, food: Food) -> None:
         super().__init__(bounds)
         self.alive = 1
         self.multiplier = 1.0
         self.score = 0
         self.initial_size = size
 
-        self.vectors = {'North': (-1, 0), 'South': (1, 0),
-                        'East': (0, 1), 'West': (0, -1)}
-        self.orientation = 'East'
+        self.vectors = {
+            "North": (-1, 0),
+            "South": (1, 0),
+            "East": (0, 1),
+            "West": (0, -1),
+        }
+        self.orientation = "East"
         self.points = [self.yx]
         self.tail = []
         self.speed = 10
@@ -64,8 +69,6 @@ class Snake(Base):
 
     @alive.setter
     def alive(self, boolean: int) -> None:
-        if boolean not in [0, 1]:
-            raise ("Alive Boolean must be True or False")
         self.__alive = boolean
 
     @property
@@ -122,7 +125,7 @@ class Snake(Base):
         Default Orientation is North, Initial is South
         """
         if direction not in self.vectors.keys():
-            self.__orientation = 'North'
+            self.__orientation = "North"
         self.__orientation = direction
 
     @property
@@ -149,7 +152,7 @@ class Snake(Base):
     # Methods #
     ###########
 
-    def build(self, food: object) -> list:
+    def build(self, food: Food) -> None:
         for _ in range(0, self.initial_size):
             self.move(food)
 
@@ -157,14 +160,14 @@ class Snake(Base):
         if set(self.points[1:]).intersection(self.points[:1]):
             self.alive = 0
 
-    def get_new_head(self, direction: str) -> int:
+    def get_new_head(self, direction: str) -> list[tuple]:
         movement = self.vectors[direction]  # Get the movement vector
         current_head = self.points[0]  # Snake head remains single point based
 
         new_head = [add_tuple_wrap(current_head, movement, self.max_yx)]
         return new_head
 
-    def move(self, food: object) -> int:
+    def move(self, food: Food) -> None:
         """
         Vectorised orientation dependent movement
         Inserts the new_head at the front of the list, then trims the tail by 1
@@ -177,7 +180,9 @@ class Snake(Base):
             if food.yx in new_head:
                 food.respawn(self.max_yx)
                 self.score += 1.0 * self.multiplier
-                if not self.score % 5:  # Increases the multiplier by 1 per 5 foods eaten
+                if (
+                    not self.score % 5
+                ):  # Increases the multiplier by 1 per 5 foods eaten
                     self.multiplier += 1
                     self.speed += 5
             else:
@@ -189,15 +194,10 @@ class Snake(Base):
             return
         self.orientation = direction
 
-    def respawn(self,  bounds: (int, int), size: int, food: object) -> None:
+    def respawn(self, bounds: tuple, size: int, food: Food) -> None:
         self.__init__(bounds, size, food)
 
-    def get_head(self):
-        if self.orientation == 'North':
-            return ['▕▏', '██'] # ▕▏▟▙▜▛
-        if self.orientation == 'South':
-            return ['▕▏', '██']
-        if self.orientation == 'East':
-            return '━━'
-        if self.orientation == 'West':
-            return '━━'
+    def get_head(self) -> str:
+        if self.orientation in ["North", "South"]:
+            return "▕▏"
+        return "━━"
