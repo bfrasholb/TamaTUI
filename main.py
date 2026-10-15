@@ -1,99 +1,53 @@
 #!/usr/bin/env python3
 
-import curses
-from classes import *
-from render import Render
+import curses  # Import a Terminal Handling Library
+import player
 import time
-from gamesound import SnakeMusic
-from statistics import mean
-
-frames = 90
-size = 12
+import rendering
+from time import sleep
 
 
-def main(window: curses.window):
-    try:
-        food = Food(window.getmaxyx())
-        snake = Snake(window.getmaxyx(), size, food)
-        render = Render(window, snake, food)
+TICK_DELAY = 128
 
-        tracks = [
-            (1, "wavs/snake-soft.wav"),
-            (2, "wavs/snake-medium.wav"),
-            (3, "wavs/snake-ohshit.wav"),
-        ]
-        background_music = SnakeMusic(tracks)
-        time.sleep(2)
-
-        while 1:
-            snake.score = 0
-            render.menu()
-            snake.respawn(render.game.getmaxyx(), size, food)
-            loop_avg = []
-            first_loop = 1
-            loops = 0
-            current_song = 1
-            change_song = 0
-            background_music.playtrack(current_song)
-
-            while snake.alive:
-                if change_song:
-                    current_song += 1
-                    background_music.playtrack(current_song)
-                    change_song = 0
-                if snake.multiplier >= 5 and current_song == 1:
-                    change_song = 1
-                if snake.multiplier >= 10 and current_song == 2:
-                    change_song = 1
-
-                snake.die()
-                render.food()
-                render.player()
-                render.score()
-
-                # Measure + Print FPS
-                if not first_loop:
-                    end_time = time.time()
-                    loop_avg.append(end_time - start_time)
-                    start_time = time.time()
-                    avg = mean(loop_avg)
-                    fps = f"   FPS: {int(1 / avg)}"
-                    render.console.addstr(
-                        0,
-                        render.console_yx[1] - len(fps),
-                        fps,
-                        curses.color_pair(5),
-                    )
-                else:
-                    first_loop = 0
-                    start_time = time.time()
-
-                render.refresh_pads(False)
-                render.handle_input()
-                time.sleep(1 / frames)
-                if snake.alive == 0:
-                    render.game_over()
-                if loops == int(frames / (0.7 * snake.speed)):
-                    snake.move(food)
-                    loops = -1
-                loops += 1
-    except curses.error:
-        success = 0
-    except BaseException:
-        success = 1
-
-    x = curses.COLS
-    y = curses.LINES
-    return y, x, success
+def launch(window: curses.window) -> int:
+    init = rendering.init_pads(window, *window.getmaxyx(), TICK_DELAY)
+    run(*init, window.getmaxyx())
 
 
-if __name__ == "__main__":
-    # Initialise and return the window to main()
-    y, x, success = curses.wrapper(main)
-    if not success:
-        print(
-            f"CURSES GO AHHHHH!\nsize is {x}x {y}y\nmax size: 189x 47y\nmin size: 111x 27y"
-        )
-    else:
-        print(f"See you next time!")
-        print(f"size is {x}x {y}y")
+def run(game: curses.window, game_yx: tuple, leaderboard: curses.window, leaderboard_yx: tuple, window_yx: tuple) -> None:
+    food = player.Food(game_yx)
+#    loading = player.Snake(game_yx, food, 100)
+    snake = player.Snake(game_yx, food, 10, leaderboard_yx, TICK_DELAY)
+
+    while (1):
+        game.clear()
+        leaderboard.clear()
+        tick_delay = TICK_DELAY
+        rendering.menu(game, game_yx, leaderboard, leaderboard_yx, snake, tick_delay)
+        snake.respawn(food, 10, leaderboard_yx, tick_delay)
+
+        # Game Loop
+        while (snake.alive):
+            # Snake Checks if it died first, then moves
+            snake.die(game, *game_yx)
+            tick_delay = snake.move(food, tick_delay)
+#            game.timeout(tick_delay)
+            # Rendering Game Menus
+            rendering.score(game, *game_yx, snake)
+            # Render Objects
+            rendering.food(game, food)
+            rendering.player(game, snake)
+            # Draw the screen from buffer
+            rendering.refresh_pads(game, game_yx, leaderboard, leaderboard_yx, snake, window_yx, False)
+            # Check Input
+            rendering.handle_input(game, game_yx, leaderboard, leaderboard_yx, snake, tick_delay, food)
+            sleep(tick_delay/1000)
+
+        if snake.alive == 0:
+            rendering.game_over(game, game_yx, leaderboard, leaderboard_yx, snake)
+
+    return (1)
+
+
+if __name__ == '__main__':
+    curses.wrapper(launch)
