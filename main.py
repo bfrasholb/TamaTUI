@@ -1,53 +1,55 @@
 #!/usr/bin/env python3
 
-import curses  # Import a Terminal Handling Library
-import player
+import curses
+from classes import *
+from render import Render
+from helper import add_tuple
 import time
-import rendering
-from time import sleep
 
+frames = 170
+framerate = 1 / frames # Aim for 60 fps, overshoot for stability
 
-TICK_DELAY = 128
-
-def launch(window: curses.window) -> int:
-    init = rendering.init_pads(window, *window.getmaxyx(), TICK_DELAY)
-    run(*init, window.getmaxyx())
-
-
-def run(game: curses.window, game_yx: tuple, leaderboard: curses.window, leaderboard_yx: tuple, window_yx: tuple) -> None:
-    food = player.Food(game_yx)
-#    loading = player.Snake(game_yx, food, 100)
-    snake = player.Snake(game_yx, food, 10, leaderboard_yx, TICK_DELAY)
+def main(window: curses.window):
+    food = Food(window.getmaxyx())
+    snake = Snake(window.getmaxyx(), 12, food)
+    render = Render(window, snake, food)
 
     while (1):
-        game.clear()
-        leaderboard.clear()
-        tick_delay = TICK_DELAY
-        rendering.menu(game, game_yx, leaderboard, leaderboard_yx, snake, tick_delay)
-        snake.respawn(food, 10, leaderboard_yx, tick_delay)
-
-        # Game Loop
+        render.menu(snake)
+        snake.respawn(render.game.getmaxyx(), 12, food)
+        loop_avg = []
+        first_loop = 1
+        loops = 0
         while (snake.alive):
-            # Snake Checks if it died first, then moves
-            snake.die(game, *game_yx)
-            tick_delay = snake.move(food, tick_delay)
-#            game.timeout(tick_delay)
-            # Rendering Game Menus
-            rendering.score(game, *game_yx, snake)
-            # Render Objects
-            rendering.food(game, food)
-            rendering.player(game, snake)
-            # Draw the screen from buffer
-            rendering.refresh_pads(game, game_yx, leaderboard, leaderboard_yx, snake, window_yx, False)
-            # Check Input
-            rendering.handle_input(game, game_yx, leaderboard, leaderboard_yx, snake, tick_delay, food)
-            sleep(tick_delay/1000)
+            snake.die()
+            render.food(food)
+            render.player(snake)
+            render.score()
 
-        if snake.alive == 0:
-            rendering.game_over(game, game_yx, leaderboard, leaderboard_yx, snake)
+            ### Measure + Print FPS
+            if not first_loop:
+                end_time = time.time()
+                loop_avg.append(end_time - start_time)
+                start_time = time.time()
+                total = 0
+                for value in loop_avg:
+                    total += value
+                avg = total / len(loop_avg)
+                fps = f"FPS: {int(1 / avg)}"
+                render.console.addstr(0, render.console_yx[1] - len(fps), fps, curses.color_pair(5))
+            else:
+                first_loop = 0
+                start_time = time.time()
 
-    return (1)
-
+            render.refresh_pads(False)
+            render.handle_input()
+            time.sleep(framerate)
+            if snake.alive == 0:
+                render.game_over(snake)
+            if loops == int(frames / (0.7 * snake.speed)):
+                snake.move(food)
+                loops = -1
+            loops += 1
 
 if __name__ == '__main__':
-    curses.wrapper(launch)
+    curses.wrapper(main) # Initialise and return the window to main()
